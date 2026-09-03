@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { api } from "../lib/api";
 type ApiPage<T> = { items: T[]; nextCursor: string | null };
@@ -15,9 +15,10 @@ export function useEntityList<T>(
   fallback: T[],
   rawParams?: Record<string, string>,
 ) {
+  const [revision, setRevision] = useState(0);
   const { demoMode, getToken } = useAuth();
   const query = useMemo(() => new URLSearchParams(rawParams), [rawParams]);
-  const key = `${collection}?${query}`;
+  const key = `${collection}?${query}#${revision}`;
   const [state, setState] = useState<State<T>>({
     items: fallback,
     nextCursor: null,
@@ -30,16 +31,22 @@ export function useEntityList<T>(
     const cached = cache.get(key);
     if (cached && cached.expires > Date.now()) {
       console.info("[CACHE HIT]", key);
-      queueMicrotask(() =>
-        active &&
-        setState({ ...(cached.data as ApiPage<T>), loading: false, error: "" }),
+      queueMicrotask(
+        () =>
+          active &&
+          setState({
+            ...(cached.data as ApiPage<T>),
+            loading: false,
+            error: "",
+          }),
       );
       return;
     }
     console.info("[CACHE MISS]", key);
-    queueMicrotask(() =>
-      active &&
-      setState((current) => ({ ...current, loading: true, error: "" })),
+    queueMicrotask(
+      () =>
+        active &&
+        setState((current) => ({ ...current, loading: true, error: "" })),
     );
     void getToken()
       .then((token) => {
@@ -62,7 +69,11 @@ export function useEntityList<T>(
       active = false;
     };
   }, [collection, demoMode, getToken, key, query]);
-  return state;
+  const reload = useCallback(() => {
+    invalidateEntityCache(collection);
+    setRevision((value) => value + 1);
+  }, [collection]);
+  return { ...state, reload };
 }
 export function invalidateEntityCache(collection: string) {
   for (const key of cache.keys())
