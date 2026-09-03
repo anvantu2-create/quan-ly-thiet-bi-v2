@@ -9,12 +9,14 @@ import {
   Network,
   Search,
   ShieldCheck,
+  Users,
   X,
   Zap,
 } from "lucide-react";
 import { devices, feeders, stations } from "./data";
 import { useAuth } from "./auth/AuthContext";
 import { EntityEditor } from "./components/EntityEditor";
+import { UsersPage } from "./components/UsersPage";
 import { useEntityList } from "./hooks/useEntityList";
 import type { Page } from "./types";
 const nav: [Page, string, typeof Activity][] = [
@@ -23,6 +25,7 @@ const nav: [Page, string, typeof Activity][] = [
   ["feeders", "Phát tuyến 22kV", Cable],
   ["devices", "Thiết bị", CircuitBoard],
   ["loops", "Khép vòng", Network],
+  ["users", "Người dùng", Users],
 ];
 export default function App() {
   const { profile, demoMode, logout } = useAuth();
@@ -50,16 +53,18 @@ export default function App() {
           </button>
         </div>
         <nav>
-          {nav.map(([id, label, Icon]) => (
-            <button
-              key={id}
-              className={page === id ? "active" : ""}
-              onClick={() => go(id)}
-            >
-              <Icon size={20} />
-              {label}
-            </button>
-          ))}
+          {nav
+            .filter(([id]) => id !== "users" || profile?.role === "ADMIN")
+            .map(([id, label, Icon]) => (
+              <button
+                key={id}
+                className={page === id ? "active" : ""}
+                onClick={() => go(id)}
+              >
+                <Icon size={20} />
+                {label}
+              </button>
+            ))}
         </nav>
         <div className="secure">
           <ShieldCheck />
@@ -101,6 +106,8 @@ export default function App() {
             <Devices query={query} setQuery={setQuery} />
           ) : page === "loops" ? (
             <Loops />
+          ) : page === "users" ? (
+            <UsersPage />
           ) : (
             <Directory page={page} query={query} setQuery={setQuery} />
           )}
