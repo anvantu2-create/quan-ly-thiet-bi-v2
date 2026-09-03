@@ -44,6 +44,8 @@ const fields: Record<
     { name: "pole", label: "Vị trí trụ" },
     { name: "settingCurrent", label: "Dòng chỉnh định" },
     { name: "googleMapsUrl", label: "Link Google Maps", type: "url" },
+    { name: "latitude", label: "Vĩ độ", type: "number" },
+    { name: "longitude", label: "Kinh độ", type: "number" },
   ],
 };
 export function EntityEditor({
