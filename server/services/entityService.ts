@@ -36,6 +36,15 @@ export async function createEntity(
   input: Record<string, unknown>,
   uid: string,
 ) {
+  if (collection === "devices" && typeof input.code === "string") {
+    const duplicate = await db
+      .collection("devices")
+      .where("code", "==", input.code)
+      .where("isDeleted", "==", false)
+      .limit(1)
+      .get();
+    if (!duplicate.empty) throw new Error("DUPLICATE_DEVICE_CODE");
+  }
   const ref = db.collection(collection).doc();
   const now = FieldValue.serverTimestamp();
   await ref.create({
@@ -64,6 +73,13 @@ export async function updateEntity(
     const current = snap.data()!;
     if (current.version !== expectedVersion)
       throw new Error("VERSION_CONFLICT");
+    const unchanged = Object.entries(input).every(
+      ([key, value]) => current[key] === value,
+    );
+    if (unchanged) {
+      console.info("[SKIP WRITE]", collection, id);
+      return { id, version: expectedVersion, skipped: true };
+    }
     tx.update(ref, {
       ...input,
       version: expectedVersion + 1,
