@@ -97,4 +97,33 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
+  proposals: (token: string) =>
+    request<{ items: Array<Record<string, unknown> & { id: string }> }>(
+      "/workflows/proposals",
+      token,
+    ),
+  createProposal: (
+    data: {
+      reason: string;
+      afterSnapshot: Record<string, unknown>;
+      operationId: string;
+    },
+    token: string,
+  ) =>
+    request("/workflows/proposals", token, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  approveProposal: (id: string, token: string) =>
+    request(`/workflows/proposals/${id}/approve`, token, { method: "POST" }),
+  tasks: (token: string) =>
+    request<{ items: Array<Record<string, unknown> & { id: string }> }>(
+      "/workflows/tasks",
+      token,
+    ),
+  createTask: (data: Record<string, string>, token: string) =>
+    request("/workflows/tasks", token, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };
