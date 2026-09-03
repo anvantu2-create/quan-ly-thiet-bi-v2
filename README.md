@@ -11,6 +11,12 @@ npm run dev
 
 Kiểm tra production: `npm run lint && npm run build`.
 
+## Tình trạng
+
+Mã nguồn MVP đã có Auth/RBAC, CRUD, GIS/ảnh, Topology, đề xuất/phê duyệt,
+công việc/checklist, Import/Export, báo cáo aggregation, realtime SSE và offline queue.
+Xem [checklist production](docs/PRODUCTION_CHECKLIST.md) trước khi triển khai thực tế.
+
 ## Nguyên tắc kiến trúc
 
 - Frontend không ghi trực tiếp Firestore; mọi mutation đi qua backend API.
