@@ -4,6 +4,8 @@ import {
   Building2,
   Cable,
   CircuitBoard,
+  ClipboardList,
+  FileCheck,
   LayoutDashboard,
   Menu,
   Network,
@@ -17,6 +19,7 @@ import { devices, feeders, stations } from "./data";
 import { useAuth } from "./auth/AuthContext";
 import { EntityEditor } from "./components/EntityEditor";
 import { UsersPage } from "./components/UsersPage";
+import { WorkflowPage } from "./components/WorkflowPage";
 import { useEntityList } from "./hooks/useEntityList";
 import type { Page } from "./types";
 const nav: [Page, string, typeof Activity][] = [
@@ -25,6 +28,8 @@ const nav: [Page, string, typeof Activity][] = [
   ["feeders", "Phát tuyến 22kV", Cable],
   ["devices", "Thiết bị", CircuitBoard],
   ["loops", "Khép vòng", Network],
+  ["proposals", "Đề xuất", FileCheck],
+  ["tasks", "Công việc", ClipboardList],
   ["users", "Người dùng", Users],
 ];
 export default function App() {
@@ -108,6 +113,10 @@ export default function App() {
             <Loops />
           ) : page === "users" ? (
             <UsersPage />
+          ) : page === "proposals" ? (
+            <WorkflowPage kind="proposals" />
+          ) : page === "tasks" ? (
+            <WorkflowPage kind="tasks" />
           ) : (
             <Directory page={page} query={query} setQuery={setQuery} />
           )}
