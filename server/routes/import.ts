@@ -21,7 +21,29 @@ importRouter.post("/devices", async (req, res) => {
       .doc(parsed.data.operationId),
     old = await operation.get();
   if (old.exists) return res.json(old.data()?.result);
-  const validated = parsed.data.rows.map((row, index) => ({
+  const stationKeys = parsed.data.rows.map((row) =>
+      String(row.substationId ?? ""),
+    ),
+    feederKeys = parsed.data.rows.map((row) => String(row.feederId ?? "")),
+    stations = await resolveReferences("substations", stationKeys),
+    feeders = await resolveReferences("feeders", feederKeys),
+    unresolved: number[] = [],
+    resolvedRows = parsed.data.rows.map((row, index) => {
+      const station = stations.get(String(row.substationId ?? "")),
+        feeder = feeders.get(String(row.feederId ?? ""));
+      if (!station || !feeder || feeder.substationId !== station.id)
+        unresolved.push(index + 2);
+      return {
+        ...row,
+        substationId: station?.id ?? "",
+        feederId: feeder?.id ?? "",
+      };
+    });
+  if (unresolved.length)
+    return res
+      .status(400)
+      .json({ error: "UNRESOLVED_STATION_OR_FEEDER", rows: unresolved });
+  const validated = resolvedRows.map((row, index) => ({
       index,
       result: validateEntity("devices", row),
     })),
@@ -36,12 +58,10 @@ importRouter.post("/devices", async (req, res) => {
     codes = rows.map((x) => String(x.code)),
     duplicates = codes.filter((code, index) => codes.indexOf(code) !== index);
   if (duplicates.length)
-    return res
-      .status(409)
-      .json({
-        error: "DUPLICATE_CODES_IN_FILE",
-        codes: [...new Set(duplicates)],
-      });
+    return res.status(409).json({
+      error: "DUPLICATE_CODES_IN_FILE",
+      codes: [...new Set(duplicates)],
+    });
   const existing: string[] = [];
   for (let i = 0; i < codes.length; i += 30) {
     const snap = await db
@@ -80,3 +100,31 @@ importRouter.post("/devices", async (req, res) => {
   console.info("[FIREBASE WRITE] devices import", rows.length);
   res.status(201).json(result);
 });
+
+async function resolveReferences(
+  collection: "substations" | "feeders",
+  rawKeys: string[],
+) {
+  const keys = [...new Set(rawKeys.filter(Boolean))],
+    result = new Map<string, { id: string; substationId?: string }>();
+  for (const field of ["code", "name"] as const)
+    for (let i = 0; i < keys.length; i += 30) {
+      const snap = await db
+        .collection(collection)
+        .where(field, "in", keys.slice(i, i + 30))
+        .where("isDeleted", "==", false)
+        .get();
+      for (const doc of snap.docs) {
+        const data = doc.data(),
+          value = String(data[field]);
+        result.set(value, {
+          id: doc.id,
+          substationId:
+            typeof data.substationId === "string"
+              ? data.substationId
+              : undefined,
+        });
+      }
+    }
+  return result;
+}
