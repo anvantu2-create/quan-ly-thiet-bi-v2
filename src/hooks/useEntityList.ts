@@ -73,6 +73,14 @@ export function useEntityList<T>(
     invalidateEntityCache(collection);
     setRevision((value) => value + 1);
   }, [collection]);
+  useEffect(() => {
+    const listener = (event: Event) => {
+      const detail = (event as CustomEvent<{ collection?: string }>).detail;
+      if (detail?.collection === collection) reload();
+    };
+    window.addEventListener("entity-changed", listener);
+    return () => window.removeEventListener("entity-changed", listener);
+  }, [collection, reload]);
   return { ...state, reload };
 }
 export function invalidateEntityCache(collection: string) {
