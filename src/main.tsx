@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import {AuthGate} from './auth/AuthGate';
+import {AuthProvider} from './auth/AuthContext';
 import './styles.css';
-ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>);
+import './auth/auth.css';
+ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><AuthProvider><AuthGate/></AuthProvider></React.StrictMode>);
