@@ -414,8 +414,9 @@ td b {
 .flow {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: 1050px;
+  justify-content: flex-start;
+  width: max-content;
+  min-width: 100%;
   padding: 70px 20px;
 }
 .flow-part {
@@ -460,6 +461,69 @@ td b {
 }
 .backdrop {
   display: none;
+}
+.minor,
+.danger {
+  border: 1px solid #dce4ee;
+  background: #fff;
+  color: #526177;
+  border-radius: 7px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+.danger {
+  color: #b52323;
+  border-color: #f3bcbc;
+}
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #071a3888;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+.modal {
+  width: min(680px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 15px;
+  padding: 25px;
+}
+.modal form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.modal label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.modal input,
+.modal select {
+  border: 1px solid #d7e0eb;
+  border-radius: 8px;
+  padding: 11px;
+  font: inherit;
+}
+.modal-actions {
+  grid-column: 1/-1;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 10px;
+  margin-top: 8px;
+}
+.modal-actions button:last-child {
+  border: 0;
+  background: #1269d2;
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 700;
 }
 @media (max-width: 900px) {
   .sidebar {
@@ -507,6 +571,23 @@ td b {
   }
   .welcome .pulse {
     display: none;
+  }
+}
+@media (max-width: 600px) {
+  .modal form {
+    grid-template-columns: 1fr;
+  }
+  .modal {
+    padding: 20px;
+  }
+  .flow {
+    min-width: max-content;
+  }
+  .node {
+    width: 130px;
+  }
+  .line {
+    width: 24px;
   }
 }
 @media (max-width: 600px) {
