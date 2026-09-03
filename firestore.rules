@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function activeProfile() { return signedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'ACTIVE'; }
+    match /{document=**} {
+      allow read: if activeProfile();
+      allow write: if false;
+    }
+  }
+}
