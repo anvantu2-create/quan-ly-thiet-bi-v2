@@ -22,6 +22,7 @@ import { EntityEditor } from "./components/EntityEditor";
 import { UsersPage } from "./components/UsersPage";
 import { WorkflowPage } from "./components/WorkflowPage";
 import { GisPage } from "./components/GisPage";
+import { PhotoUpload } from "./components/PhotoUpload";
 import { downloadCsv } from "./utils/csv";
 import { useEntityList } from "./hooks/useEntityList";
 import type { Page } from "./types";
@@ -428,11 +429,14 @@ function Devices({
                 </td>
                 <td>
                   {canUpdate && (
-                    <EntityEditor
-                      collection="devices"
-                      initial={d as unknown as Record<string, unknown>}
-                      onSaved={reload}
-                    />
+                    <div className="row-actions">
+                      <PhotoUpload deviceId={d.id} onSaved={reload} />
+                      <EntityEditor
+                        collection="devices"
+                        initial={d as unknown as Record<string, unknown>}
+                        onSaved={reload}
+                      />
+                    </div>
                   )}
                 </td>
               </tr>
