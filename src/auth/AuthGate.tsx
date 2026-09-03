@@ -1,6 +1,7 @@
 import App from "../App";
 import { useAuth } from "./AuthContext";
 import { LoginPage } from "./LoginPage";
+import { RealtimeSync } from "../components/RealtimeSync";
 export function AuthGate() {
   const { loading, user, profile, error, demoMode } = useAuth();
   if (loading)
@@ -20,5 +21,10 @@ export function AuthGate() {
       </>
     );
   if (!user || !profile) return <LoginPage sessionError={error} />;
-  return <App />;
+  return (
+    <>
+      <RealtimeSync />
+      <App />
+    </>
+  );
 }
