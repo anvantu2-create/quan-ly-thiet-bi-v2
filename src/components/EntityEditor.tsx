@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { api, ApiError } from "../lib/api";
 import { useAuth } from "../auth/AuthContext";
+import { enqueue } from "../offline/queue";
 type Collection = "substations" | "feeders" | "devices";
 type Entity = Record<string, unknown> & { id?: string; version?: number };
 const fields: Record<
@@ -77,6 +78,21 @@ export function EntityEditor({
     setSaving(true);
     setError("");
     try {
+      const operationId = crypto.randomUUID();
+      if (!navigator.onLine) {
+        enqueue({
+          id: operationId,
+          action: initial?.id ? "UPDATE" : "CREATE",
+          collection,
+          entityId: initial?.id,
+          data: form,
+          expectedVersion: initial?.version,
+          createdAt: new Date().toISOString(),
+        });
+        window.dispatchEvent(new Event("offline-queued"));
+        setOpen(false);
+        return;
+      }
       const token = await getToken();
       if (!token) throw new Error("UNAUTHENTICATED");
       if (initial?.id)
@@ -86,8 +102,9 @@ export function EntityEditor({
           form,
           Number(initial.version),
           token,
+          operationId,
         );
-      else await api.create(collection, form, token);
+      else await api.create(collection, form, token, operationId);
       setOpen(false);
       onSaved();
     } catch (e) {
@@ -106,9 +123,30 @@ export function EntityEditor({
       return;
     setSaving(true);
     try {
+      const operationId = crypto.randomUUID();
+      if (!navigator.onLine) {
+        enqueue({
+          id: operationId,
+          action: "DELETE",
+          collection,
+          entityId: initial.id,
+          data: {},
+          expectedVersion: initial.version,
+          createdAt: new Date().toISOString(),
+        });
+        window.dispatchEvent(new Event("offline-queued"));
+        setOpen(false);
+        return;
+      }
       const token = await getToken();
       if (!token) throw new Error();
-      await api.remove(collection, initial.id, Number(initial.version), token);
+      await api.remove(
+        collection,
+        initial.id,
+        Number(initial.version),
+        token,
+        operationId,
+      );
       setOpen(false);
       onSaved();
     } catch (e) {
