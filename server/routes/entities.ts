@@ -11,6 +11,7 @@ import {
   type CollectionName,
 } from "../services/entityService.js";
 import { validateEntity } from "../validation/entities.js";
+import { eventBus } from "../realtime/eventBus.js";
 const bodySchema = z.object({
   data: z.record(z.string(), z.unknown()),
   expectedVersion: z.number().int().positive().optional(),
@@ -112,6 +113,14 @@ async function mutate(
       expiresAt: new Date(Date.now() + 86400000),
     });
     await writeAudit(req.user!.uid, action, collection, result.id);
+    eventBus.publish({
+      id: operationId,
+      collection,
+      entityId: result.id,
+      action,
+      version: result.version,
+      createdAt: new Date().toISOString(),
+    });
     return res.status(action === "CREATE" ? 201 : 200).json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "UNKNOWN";
