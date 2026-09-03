@@ -10,6 +10,7 @@ import {
   updateEntity,
   type CollectionName,
 } from "../services/entityService.js";
+import { validateEntity } from "../validation/entities.js";
 const bodySchema = z.object({
   data: z.record(z.string(), z.unknown()),
   expectedVersion: z.number().int().positive().optional(),
@@ -79,6 +80,11 @@ async function mutate(
         .status(400)
         .json({ error: "INVALID_INPUT", details: parsed.error.flatten() });
     const { data, expectedVersion, operationId } = parsed.data;
+    const validated = validateEntity(collection, data, action !== "CREATE");
+    if (!validated.success)
+      return res
+        .status(400)
+        .json({ error: "INVALID_ENTITY", details: validated.error.flatten() });
     const opRef = db.collection("idempotencyKeys").doc(operationId),
       existing = await opRef.get();
     if (existing.exists) return res.status(200).json(existing.data()?.result);
@@ -87,16 +93,18 @@ async function mutate(
     const id = String(req.params.id);
     const result =
       action === "CREATE"
-        ? await createEntity(collection, data, req.user!.uid)
+        ? await createEntity(collection, validated.data, req.user!.uid)
         : action === "UPDATE"
           ? await updateEntity(
               collection,
               id,
-              data,
+              validated.data,
               expectedVersion!,
               req.user!.uid,
             )
           : await deleteEntity(collection, id, expectedVersion!, req.user!.uid);
+    if ("skipped" in result && result.skipped)
+      return res.status(200).json(result);
     await opRef.create({
       result,
       uid: req.user!.uid,
@@ -111,6 +119,8 @@ async function mutate(
       return res.status(409).json({ error: "VERSION_CONFLICT" });
     if (message === "NOT_FOUND")
       return res.status(404).json({ error: "NOT_FOUND" });
+    if (message === "DUPLICATE_DEVICE_CODE")
+      return res.status(409).json({ error: "DUPLICATE_DEVICE_CODE" });
     throw error;
   }
 }
