@@ -23,6 +23,7 @@ import { UsersPage } from "./components/UsersPage";
 import { WorkflowPage } from "./components/WorkflowPage";
 import { GisPage } from "./components/GisPage";
 import { PhotoUpload } from "./components/PhotoUpload";
+import { ImportDevices } from "./components/ImportDevices";
 import { downloadCsv } from "./utils/csv";
 import { useEntityList } from "./hooks/useEntityList";
 import type { Page } from "./types";
@@ -376,6 +377,9 @@ function Devices({
             >
               Xuất CSV
             </button>
+          )}
+          {!demoMode && profile?.permissions.includes("IMPORT") && (
+            <ImportDevices onSaved={reload} />
           )}
           {canCreate && <EntityEditor collection="devices" onSaved={reload} />}
         </div>
