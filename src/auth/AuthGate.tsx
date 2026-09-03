@@ -1,0 +1,2 @@
+import App from'../App';import{useAuth}from'./AuthContext';import{LoginPage}from'./LoginPage';
+export function AuthGate(){const{loading,user,profile,error,demoMode}=useAuth();if(loading)return <div className="auth-screen"><div className="loader"/><p>Đang xác thực phiên đăng nhập…</p></div>;if(demoMode)return <><div className="demo-banner">CHẾ ĐỘ DEMO — chưa cấu hình Firebase, dữ liệu chỉ để minh họa</div><App/></>;if(!user||!profile)return <LoginPage sessionError={error}/>;return <App/>}
