@@ -77,4 +77,24 @@ export const api = {
         operationId: crypto.randomUUID(),
       }),
     }),
+  users: (token: string) =>
+    request<{
+      items: Array<{
+        uid: string;
+        email: string;
+        role: "ADMIN" | "MANAGER" | "STAFF" | "VIEWER";
+        status: "ACTIVE" | "PENDING" | "DISABLED" | "LOCKED";
+        version?: number;
+      }>;
+      nextCursor: string | null;
+    }>("/users?limit=25", token),
+  updateUser: (
+    uid: string,
+    data: { role: string; status: string; expectedVersion: number },
+    token: string,
+  ) =>
+    request(`/users/${uid}`, token, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
 };
