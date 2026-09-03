@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 export interface MeResponse {
   uid: string;
   email: string;
@@ -19,7 +19,7 @@ async function request<T>(
   token: string,
   init?: RequestInit,
 ): Promise<T> {
-  const response = await fetch(BASE_URL + path, {
+  const response = await fetch(API_BASE_URL + path, {
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -129,7 +129,7 @@ export const api = {
   uploadPhoto: async (deviceId: string, file: File, token: string) => {
     const form = new FormData();
     form.append("image", file);
-    const response = await fetch(`${BASE_URL}/media/devices/${deviceId}`, {
+    const response = await fetch(`${API_BASE_URL}/media/devices/${deviceId}`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
       body: form,
