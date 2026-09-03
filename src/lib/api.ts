@@ -139,4 +139,9 @@ export const api = {
       throw new ApiError(response.status, body.error ?? "UPLOAD_FAILED");
     return body;
   },
+  importDevices: (rows: Array<Record<string, unknown>>, token: string) =>
+    request<{ created: number }>("/import/devices", token, {
+      method: "POST",
+      body: JSON.stringify({ rows, operationId: crypto.randomUUID() }),
+    }),
 };
