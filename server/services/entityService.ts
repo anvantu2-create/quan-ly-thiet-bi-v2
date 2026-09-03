@@ -1,6 +1,90 @@
-import{FieldValue,Timestamp}from'firebase-admin/firestore';import{db}from'../config/firebase.js';
-export const COLLECTIONS=['substations','feeders','devices','loops']as const;export type CollectionName=typeof COLLECTIONS[number];
-export async function listEntities(collection:CollectionName,limit:number,cursor?:string,scope?:{field:string,value:string}){let query=db.collection(collection).where('isDeleted','==',false).orderBy('updatedAt','desc').limit(limit);if(scope)query=query.where(scope.field,'==',scope.value);if(cursor){const cursorDoc=await db.collection(collection).doc(cursor).get();if(cursorDoc.exists)query=query.startAfter(cursorDoc)}const snap=await query.get();console.info('[FIREBASE READ]',collection,snap.size);return{items:snap.docs.map(d=>({id:d.id,...d.data()})),nextCursor:snap.size===limit?snap.docs.at(-1)?.id:null}}
-export async function createEntity(collection:CollectionName,input:Record<string,unknown>,uid:string){const ref=db.collection(collection).doc();const now=FieldValue.serverTimestamp();await ref.create({...input,version:1,isDeleted:false,createdAt:now,updatedAt:now,createdBy:uid,updatedBy:uid});console.info('[FIREBASE WRITE]',collection,'create');return{id:ref.id,version:1}}
-export async function updateEntity(collection:CollectionName,id:string,input:Record<string,unknown>,expectedVersion:number,uid:string){return db.runTransaction(async tx=>{const ref=db.collection(collection).doc(id),snap=await tx.get(ref);if(!snap.exists)throw new Error('NOT_FOUND');const current=snap.data()!;if(current.version!==expectedVersion)throw new Error('VERSION_CONFLICT');tx.update(ref,{...input,version:expectedVersion+1,updatedAt:Timestamp.now(),updatedBy:uid});console.info('[FIREBASE WRITE]',collection,'update');return{id,version:expectedVersion+1}})}
-export async function deleteEntity(collection:CollectionName,id:string,expectedVersion:number,uid:string){return updateEntity(collection,id,{isDeleted:true,deletedAt:Timestamp.now()},expectedVersion,uid)}
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { db } from "../config/firebase.js";
+export const COLLECTIONS = [
+  "substations",
+  "feeders",
+  "devices",
+  "loops",
+] as const;
+export type CollectionName = (typeof COLLECTIONS)[number];
+export async function listEntities(
+  collection: CollectionName,
+  limit: number,
+  cursor?: string,
+  filters: Array<{ field: string; value: string }> = [],
+) {
+  let query = db
+    .collection(collection)
+    .where("isDeleted", "==", false)
+    .orderBy("updatedAt", "desc")
+    .limit(limit);
+  for (const filter of filters)
+    query = query.where(filter.field, "==", filter.value);
+  if (cursor) {
+    const cursorDoc = await db.collection(collection).doc(cursor).get();
+    if (cursorDoc.exists) query = query.startAfter(cursorDoc);
+  }
+  const snap = await query.get();
+  console.info("[FIREBASE READ]", collection, snap.size);
+  return {
+    items: snap.docs.map((d) => ({ id: d.id, ...d.data() })),
+    nextCursor: snap.size === limit ? snap.docs.at(-1)?.id : null,
+  };
+}
+export async function createEntity(
+  collection: CollectionName,
+  input: Record<string, unknown>,
+  uid: string,
+) {
+  const ref = db.collection(collection).doc();
+  const now = FieldValue.serverTimestamp();
+  await ref.create({
+    ...input,
+    version: 1,
+    isDeleted: false,
+    createdAt: now,
+    updatedAt: now,
+    createdBy: uid,
+    updatedBy: uid,
+  });
+  console.info("[FIREBASE WRITE]", collection, "create");
+  return { id: ref.id, version: 1 };
+}
+export async function updateEntity(
+  collection: CollectionName,
+  id: string,
+  input: Record<string, unknown>,
+  expectedVersion: number,
+  uid: string,
+) {
+  return db.runTransaction(async (tx) => {
+    const ref = db.collection(collection).doc(id),
+      snap = await tx.get(ref);
+    if (!snap.exists) throw new Error("NOT_FOUND");
+    const current = snap.data()!;
+    if (current.version !== expectedVersion)
+      throw new Error("VERSION_CONFLICT");
+    tx.update(ref, {
+      ...input,
+      version: expectedVersion + 1,
+      updatedAt: Timestamp.now(),
+      updatedBy: uid,
+    });
+    console.info("[FIREBASE WRITE]", collection, "update");
+    return { id, version: expectedVersion + 1 };
+  });
+}
+export async function deleteEntity(
+  collection: CollectionName,
+  id: string,
+  expectedVersion: number,
+  uid: string,
+) {
+  return updateEntity(
+    collection,
+    id,
+    { isDeleted: true, deletedAt: Timestamp.now() },
+    expectedVersion,
+    uid,
+  );
+}
