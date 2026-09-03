@@ -13,6 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 import { devices, feeders, stations } from "./data";
+import { useAuth } from "./auth/AuthContext";
 import { useEntityList } from "./hooks/useEntityList";
 import type { Page } from "./types";
 const nav: [Page, string, typeof Activity][] = [
@@ -23,6 +24,7 @@ const nav: [Page, string, typeof Activity][] = [
   ["loops", "Khép vòng", Network],
 ];
 export default function App() {
+  const { profile, demoMode, logout } = useAuth();
   const [page, setPage] = useState<Page>("dashboard"),
     [mobile, setMobile] = useState(false),
     [query, setQuery] = useState("");
@@ -62,7 +64,7 @@ export default function App() {
           <ShieldCheck />
           <div>
             <b>Hệ thống an toàn</b>
-            <small>Phiên bản 0.1.0</small>
+            <small>Phiên bản 0.5.0</small>
           </div>
         </div>
       </aside>
@@ -79,11 +81,16 @@ export default function App() {
             <h1>{nav.find((n) => n[0] === page)?.[1]}</h1>
           </div>
           <div className="user">
-            <span>AV</span>
+            <span>{profile?.email.slice(0, 2).toUpperCase() ?? "AV"}</span>
             <div>
-              <b>Quản trị viên</b>
-              <small>ADMIN</small>
+              <b>{profile?.email ?? "Quản trị viên"}</b>
+              <small>{profile?.role ?? "ADMIN"}</small>
             </div>
+            {!demoMode && (
+              <button className="logout" onClick={() => void logout()}>
+                Đăng xuất
+              </button>
+            )}
           </div>
         </header>
         <section className="content">
@@ -233,13 +240,20 @@ function Directory({
   query: string;
   setQuery: (s: string) => void;
 }) {
+  const { profile, demoMode } = useAuth();
+  const canCreate =
+    demoMode || Boolean(profile?.permissions.includes("CREATE"));
   const fallback =
     page === "substations"
       ? stations.map((x) => ({ ...x, status: "Đang vận hành" }))
       : feeders.map((x) => ({ ...x, code: x.id }));
-  const { items, loading, error } = useEntityList<
-    { id: string; code?: string; name: string; station?: string; status?: string }
-  >(page === "substations" ? "substations" : "feeders", fallback);
+  const { items, loading, error } = useEntityList<{
+    id: string;
+    code?: string;
+    name: string;
+    station?: string;
+    status?: string;
+  }>(page === "substations" ? "substations" : "feeders", fallback);
   const rows = items.map((x) => ({
     code: x.code ?? x.id,
     name: x.name,
@@ -254,7 +268,7 @@ function Directory({
       {error && <p className="data-error">Không tải được dữ liệu: {error}</p>}
       <div className="toolbar">
         <SearchBox query={query} setQuery={setQuery} />
-        <button className="primary">+ Thêm mới</button>
+        {canCreate && <button className="primary">+ Thêm mới</button>}
       </div>
       <div className="cards">
         {rows
@@ -285,6 +299,9 @@ function Devices({
   query: string;
   setQuery: (s: string) => void;
 }) {
+  const { profile, demoMode } = useAuth();
+  const canCreate =
+    demoMode || Boolean(profile?.permissions.includes("CREATE"));
   const { items, loading, error } = useEntityList("devices", devices);
   const rows = useMemo(
     () =>
@@ -301,7 +318,7 @@ function Devices({
       {error && <p className="data-error">Không tải được dữ liệu: {error}</p>}
       <div className="toolbar">
         <SearchBox query={query} setQuery={setQuery} />
-        <button className="primary">+ Thêm thiết bị</button>
+        {canCreate && <button className="primary">+ Thêm thiết bị</button>}
       </div>
       <div className="table-wrap">
         <table>
