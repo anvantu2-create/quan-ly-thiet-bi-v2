@@ -1,5 +1,12 @@
 export type Page =
-  "dashboard" | "substations" | "feeders" | "devices" | "loops" | "users";
+  | "dashboard"
+  | "substations"
+  | "feeders"
+  | "devices"
+  | "loops"
+  | "users"
+  | "proposals"
+  | "tasks";
 export interface Device {
   id: string;
   code: string;
