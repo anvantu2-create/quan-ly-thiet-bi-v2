@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { devices, feeders, stations } from "./data";
 import { useAuth } from "./auth/AuthContext";
+import { EntityEditor } from "./components/EntityEditor";
 import { useEntityList } from "./hooks/useEntityList";
 import type { Page } from "./types";
 const nav: [Page, string, typeof Activity][] = [
@@ -242,21 +243,26 @@ function Directory({
 }) {
   const { profile, demoMode } = useAuth();
   const canCreate =
-    demoMode || Boolean(profile?.permissions.includes("CREATE"));
+    !demoMode && Boolean(profile?.permissions.includes("CREATE"));
+  const canUpdate =
+    !demoMode && Boolean(profile?.permissions.includes("UPDATE"));
   const fallback =
     page === "substations"
       ? stations.map((x) => ({ ...x, status: "Đang vận hành" }))
       : feeders.map((x) => ({ ...x, code: x.id }));
-  const { items, loading, error } = useEntityList<{
+  const { items, loading, error, reload } = useEntityList<{
     id: string;
+    version?: number;
     code?: string;
     name: string;
     station?: string;
     status?: string;
+    substationId?: string;
   }>(page === "substations" ? "substations" : "feeders", fallback);
   const rows = items.map((x) => ({
     code: x.code ?? x.id,
     name: x.name,
+    raw: x,
     extra:
       page === "substations"
         ? (x.status ?? "Đang vận hành")
@@ -268,7 +274,12 @@ function Directory({
       {error && <p className="data-error">Không tải được dữ liệu: {error}</p>}
       <div className="toolbar">
         <SearchBox query={query} setQuery={setQuery} />
-        {canCreate && <button className="primary">+ Thêm mới</button>}
+        {canCreate && (
+          <EntityEditor
+            collection={page === "substations" ? "substations" : "feeders"}
+            onSaved={reload}
+          />
+        )}
       </div>
       <div className="cards">
         {rows
@@ -286,6 +297,15 @@ function Directory({
                 <p>{r.extra}</p>
               </div>
               <span className="badge on">Hoạt động</span>
+              {canUpdate && (
+                <EntityEditor
+                  collection={
+                    page === "substations" ? "substations" : "feeders"
+                  }
+                  initial={r.raw}
+                  onSaved={reload}
+                />
+              )}
             </article>
           ))}
       </div>
@@ -301,8 +321,10 @@ function Devices({
 }) {
   const { profile, demoMode } = useAuth();
   const canCreate =
-    demoMode || Boolean(profile?.permissions.includes("CREATE"));
-  const { items, loading, error } = useEntityList("devices", devices);
+    !demoMode && Boolean(profile?.permissions.includes("CREATE"));
+  const canUpdate =
+    !demoMode && Boolean(profile?.permissions.includes("UPDATE"));
+  const { items, loading, error, reload } = useEntityList("devices", devices);
   const rows = useMemo(
     () =>
       items.filter((d) =>
@@ -318,7 +340,7 @@ function Devices({
       {error && <p className="data-error">Không tải được dữ liệu: {error}</p>}
       <div className="toolbar">
         <SearchBox query={query} setQuery={setQuery} />
-        {canCreate && <button className="primary">+ Thêm thiết bị</button>}
+        {canCreate && <EntityEditor collection="devices" onSaved={reload} />}
       </div>
       <div className="table-wrap">
         <table>
@@ -330,6 +352,7 @@ function Devices({
               <th>Vị trí</th>
               <th>Chỉnh định</th>
               <th>Trạng thái</th>
+              <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -365,6 +388,15 @@ function Devices({
                         ? "Đóng"
                         : "Tạm ngưng"}
                   </span>
+                </td>
+                <td>
+                  {canUpdate && (
+                    <EntityEditor
+                      collection="devices"
+                      initial={d as unknown as Record<string, unknown>}
+                      onSaved={reload}
+                    />
+                  )}
                 </td>
               </tr>
             ))}
