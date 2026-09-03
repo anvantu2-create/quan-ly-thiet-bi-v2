@@ -126,4 +126,17 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+  uploadPhoto: async (deviceId: string, file: File, token: string) => {
+    const form = new FormData();
+    form.append("image", file);
+    const response = await fetch(`${BASE_URL}/media/devices/${deviceId}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    const body = await response.json();
+    if (!response.ok)
+      throw new ApiError(response.status, body.error ?? "UPLOAD_FAILED");
+    return body;
+  },
 };
