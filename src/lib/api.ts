@@ -43,10 +43,15 @@ export const api = {
       `/entities/${collection}?${params}`,
       token,
     ),
-  create: (collection: string, data: Record<string, unknown>, token: string) =>
+  create: (
+    collection: string,
+    data: Record<string, unknown>,
+    token: string,
+    operationId: string = crypto.randomUUID(),
+  ) =>
     request(`/entities/${collection}`, token, {
       method: "POST",
-      body: JSON.stringify({ data, operationId: crypto.randomUUID() }),
+      body: JSON.stringify({ data, operationId }),
     }),
   update: (
     collection: string,
@@ -54,13 +59,14 @@ export const api = {
     data: Record<string, unknown>,
     expectedVersion: number,
     token: string,
+    operationId: string = crypto.randomUUID(),
   ) =>
     request(`/entities/${collection}/${id}`, token, {
       method: "PATCH",
       body: JSON.stringify({
         data,
         expectedVersion,
-        operationId: crypto.randomUUID(),
+        operationId,
       }),
     }),
   remove: (
@@ -68,13 +74,14 @@ export const api = {
     id: string,
     expectedVersion: number,
     token: string,
+    operationId: string = crypto.randomUUID(),
   ) =>
     request(`/entities/${collection}/${id}`, token, {
       method: "DELETE",
       body: JSON.stringify({
         data: {},
         expectedVersion,
-        operationId: crypto.randomUUID(),
+        operationId,
       }),
     }),
   users: (token: string) =>
