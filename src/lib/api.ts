@@ -63,4 +63,18 @@ export const api = {
         operationId: crypto.randomUUID(),
       }),
     }),
+  remove: (
+    collection: string,
+    id: string,
+    expectedVersion: number,
+    token: string,
+  ) =>
+    request(`/entities/${collection}/${id}`, token, {
+      method: "DELETE",
+      body: JSON.stringify({
+        data: {},
+        expectedVersion,
+        operationId: crypto.randomUUID(),
+      }),
+    }),
 };
