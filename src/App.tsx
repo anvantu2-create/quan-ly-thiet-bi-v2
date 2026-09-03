@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Menu,
   MapPinned,
+  BarChart3,
   Network,
   Search,
   ShieldCheck,
@@ -24,6 +25,7 @@ import { WorkflowPage } from "./components/WorkflowPage";
 import { GisPage } from "./components/GisPage";
 import { PhotoUpload } from "./components/PhotoUpload";
 import { ImportDevices } from "./components/ImportDevices";
+import { ReportsPage } from "./components/ReportsPage";
 import { downloadCsv } from "./utils/csv";
 import { useEntityList } from "./hooks/useEntityList";
 import type { Page } from "./types";
@@ -34,6 +36,7 @@ const nav: [Page, string, typeof Activity][] = [
   ["devices", "Thiết bị", CircuitBoard],
   ["loops", "Khép vòng", Network],
   ["gis", "Bản đồ GIS", MapPinned],
+  ["reports", "Báo cáo", BarChart3],
   ["proposals", "Đề xuất", FileCheck],
   ["tasks", "Công việc", ClipboardList],
   ["users", "Người dùng", Users],
@@ -125,6 +128,8 @@ export default function App() {
             <WorkflowPage kind="tasks" />
           ) : page === "gis" ? (
             <GisPage />
+          ) : page === "reports" ? (
+            <ReportsPage />
           ) : (
             <Directory page={page} query={query} setQuery={setQuery} />
           )}
