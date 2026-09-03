@@ -8,6 +8,7 @@ import {
   FileCheck,
   LayoutDashboard,
   Menu,
+  MapPinned,
   Network,
   Search,
   ShieldCheck,
@@ -20,6 +21,8 @@ import { useAuth } from "./auth/AuthContext";
 import { EntityEditor } from "./components/EntityEditor";
 import { UsersPage } from "./components/UsersPage";
 import { WorkflowPage } from "./components/WorkflowPage";
+import { GisPage } from "./components/GisPage";
+import { downloadCsv } from "./utils/csv";
 import { useEntityList } from "./hooks/useEntityList";
 import type { Page } from "./types";
 const nav: [Page, string, typeof Activity][] = [
@@ -28,6 +31,7 @@ const nav: [Page, string, typeof Activity][] = [
   ["feeders", "Phát tuyến 22kV", Cable],
   ["devices", "Thiết bị", CircuitBoard],
   ["loops", "Khép vòng", Network],
+  ["gis", "Bản đồ GIS", MapPinned],
   ["proposals", "Đề xuất", FileCheck],
   ["tasks", "Công việc", ClipboardList],
   ["users", "Người dùng", Users],
@@ -117,6 +121,8 @@ export default function App() {
             <WorkflowPage kind="proposals" />
           ) : page === "tasks" ? (
             <WorkflowPage kind="tasks" />
+          ) : page === "gis" ? (
+            <GisPage />
           ) : (
             <Directory page={page} query={query} setQuery={setQuery} />
           )}
@@ -356,7 +362,22 @@ function Devices({
       {error && <p className="data-error">Không tải được dữ liệu: {error}</p>}
       <div className="toolbar">
         <SearchBox query={query} setQuery={setQuery} />
-        {canCreate && <EntityEditor collection="devices" onSaved={reload} />}
+        <div className="toolbar-actions">
+          {!demoMode && profile?.permissions.includes("EXPORT") && (
+            <button
+              className="minor"
+              onClick={() =>
+                downloadCsv(
+                  "thiet-bi.csv",
+                  rows.map((item) => ({ ...item })),
+                )
+              }
+            >
+              Xuất CSV
+            </button>
+          )}
+          {canCreate && <EntityEditor collection="devices" onSaved={reload} />}
+        </div>
       </div>
       <div className="table-wrap">
         <table>
