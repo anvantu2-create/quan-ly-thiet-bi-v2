@@ -2,6 +2,7 @@ import App from "../App";
 import { useAuth } from "./AuthContext";
 import { LoginPage } from "./LoginPage";
 import { RealtimeSync } from "../components/RealtimeSync";
+import { OfflineSync } from "../components/OfflineSync";
 export function AuthGate() {
   const { loading, user, profile, error, demoMode } = useAuth();
   if (loading)
@@ -24,6 +25,7 @@ export function AuthGate() {
   return (
     <>
       <RealtimeSync />
+      <OfflineSync />
       <App />
     </>
   );
