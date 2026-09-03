@@ -6,7 +6,9 @@ export type Page =
   | "loops"
   | "users"
   | "proposals"
-  | "tasks";
+  | "tasks"
+  | "gis"
+  | "reports";
 export interface Device {
   id: string;
   code: string;
