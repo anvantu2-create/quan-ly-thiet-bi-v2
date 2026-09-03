@@ -144,4 +144,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ rows, operationId: crypto.randomUUID() }),
     }),
+  summary: (token: string) =>
+    request<{
+      substations: number;
+      feeders: number;
+      devices: number;
+      loops: number;
+    }>("/reports/summary", token),
 };
