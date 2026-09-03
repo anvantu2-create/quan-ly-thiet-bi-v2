@@ -5,6 +5,7 @@ import { entityRouter } from "./routes/entities.js";
 import { usersRouter } from "./routes/users.js";
 import { workflowRouter } from "./routes/workflows.js";
 import { mediaRouter } from "./routes/media.js";
+import { importRouter } from "./routes/import.js";
 import { errorHandler } from "./middleware/error.js";
 export function createApp() {
   const app = express();
@@ -17,6 +18,7 @@ export function createApp() {
   app.use("/api/users", usersRouter);
   app.use("/api/workflows", workflowRouter);
   app.use("/api/media", mediaRouter);
+  app.use("/api/import", importRouter);
   app.use(errorHandler);
   return app;
 }
