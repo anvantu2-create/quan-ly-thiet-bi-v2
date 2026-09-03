@@ -31,6 +31,8 @@ const schemas = {
       pole: optionalText,
       settingCurrent: optionalText,
       googleMapsUrl: z.string().url().optional().or(z.literal("")),
+      latitude: z.coerce.number().min(-90).max(90).optional(),
+      longitude: z.coerce.number().min(-180).max(180).optional(),
     })
     .strict(),
   loops: z
